@@ -8,13 +8,14 @@ from app.core.user import current_superuser
 from app.crud.charity_project import charity_project_crud
 from app.services.google_api import (set_user_permissions, spreadsheets_create,
                                      spreadsheets_update_value)
+from app.schemas.google_api import GoogleAPIBase
 
 router = APIRouter()
 
 
 @router.post(
     '/',
-    response_model=str,
+    response_model=GoogleAPIBase,
     dependencies=[Depends(current_superuser)],
 )
 async def get_report(
@@ -26,10 +27,10 @@ async def get_report(
     charity_projects = await charity_project_crud.get_projects_by_completion_rate(
         session
     )
-    spreadsheetid = await spreadsheets_create(wrapper_services)
-    await set_user_permissions(spreadsheetid, wrapper_services)
-    await spreadsheets_update_value(spreadsheetid,
+    spreadsheet_id = await spreadsheets_create(wrapper_services)
+    await set_user_permissions(spreadsheet_id, wrapper_services)
+    await spreadsheets_update_value(spreadsheet_id,
                                     charity_projects,
                                     wrapper_services)
-    return (f'Был создан документ с ID {spreadsheetid}'
-            f' https://docs.google.com/spreadsheets/d/{spreadsheetid}')
+    return {'message': (f'Был создан документ с ID {spreadsheet_id}'
+            f' https://docs.google.com/spreadsheets/d/{spreadsheet_id}')}
